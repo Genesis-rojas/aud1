@@ -43,13 +43,19 @@
     }
 
     .malla {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 10px;
-      padding: 20px;
-      max-width: 1400px;
-      margin: auto;
-    }
+      display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  padding: 20px;
+  overflow-x: auto;
+}
+.semestre-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
     .ramo {
       background-color: #e3f2fd;
@@ -211,30 +217,45 @@
     let progreso = JSON.parse(localStorage.getItem("progresoUDP")) || {};
 
     function renderMalla() {
-      const malla = document.getElementById("malla");
-      malla.innerHTML = "";
-      const max = Math.max(...cursos.map(c => c.semestre));
-      for (let i = 1; i <= max; i++) {
-        cursos.filter(c => c.semestre === i).forEach(curso => {
-          const div = document.createElement("div");
-          div.className = "ramo";
-          div.style.backgroundColor = colores[curso.area] || "#f1f3f5";
-          if (curso.prerrequisitos.some(pr => !progreso[pr])) div.classList.add("locked");
-          if (progreso[curso.codigo]) div.classList.add("done");
-          div.onclick = () => {
-            if (div.classList.contains("locked")) return;
-            progreso[curso.codigo] = !progreso[curso.codigo];
-            localStorage.setItem("progresoUDP", JSON.stringify(progreso));
-            renderMalla();
-            actualizarBarra();
-          };
-          div.innerHTML = `<div class="codigo">${curso.codigo}</div>
-                           <div class="nombre">${curso.nombre}</div>
-                           <div class="sct">${curso.sct} SCT</div>`;
-          malla.appendChild(div);
-        });
-      }
-    }
+        const malla = document.getElementById("malla");
+  malla.innerHTML = "";
+  const max = Math.max(...cursos.map(c => c.semestre));
+
+  for (let i = 1; i <= max; i++) {
+    const columna = document.createElement("div");
+    columna.className = "semestre-col";
+
+    const titulo = document.createElement("h3");
+    titulo.textContent = `Semestre ${i}`;
+    titulo.style.textAlign = "center";
+    titulo.style.fontSize = "14px";
+    titulo.style.margin = "0 0 5px 0";
+    columna.appendChild(titulo);
+
+    cursos
+      .filter(c => c.semestre === i)
+      .forEach(curso => {
+        const div = document.createElement("div");
+        div.className = "ramo";
+        div.style.backgroundColor = colores[curso.area] || "#f1f3f5";
+        if (curso.prerrequisitos.some(pr => !progreso[pr])) div.classList.add("locked");
+        if (progreso[curso.codigo]) div.classList.add("done");
+        div.onclick = () => {
+          if (div.classList.contains("locked")) return;
+          progreso[curso.codigo] = !progreso[curso.codigo];
+          localStorage.setItem("progresoUDP", JSON.stringify(progreso));
+          renderMalla();
+          actualizarBarra();
+        };
+        div.innerHTML = `<div class="codigo">${curso.codigo}</div>
+                         <div class="nombre">${curso.nombre}</div>
+                         <div class="sct">${curso.sct} SCT</div>`;
+        columna.appendChild(div);
+      });
+
+    malla.appendChild(columna);
+  }
+}
 
     function actualizarBarra() {
       const total = cursos.length;
