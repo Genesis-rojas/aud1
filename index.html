@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malla Interactiva Contador Auditor UDP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #fff;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+      font-weight: 600;
+      font-size: 24px;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0;
+      font-size: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .malla {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 10px;
+      padding: 20px;
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    .ramo {
+      background-color: #e3f2fd;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 12px;
+      text-align: center;
+      position: relative;
+      cursor: pointer;
+      min-height: 80px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .ramo .codigo {
+      font-weight: 600;
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+
+    .ramo .nombre {
+      font-size: 12px;
+    }
+
+    .ramo .sct {
+      position: absolute;
+      bottom: 4px;
+      right: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #666;
+    }
+
+    .ramo.done {
+      background-color: #c3feca;
+      text-decoration: line-through;
+    }
+
+    .ramo.locked {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .barra-progreso {
+      width: 80%;
+      height: 16px;
+      background: #eee;
+      margin: 20px auto;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .barra {
+      height: 100%;
+      background: #51cf66;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .reset-btn {
+      display: block;
+      margin: 0 auto 20px auto;
+      padding: 10px 20px;
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Malla Interactiva Contador Auditor UDP</h1>
+
+  <div class="barra-progreso">
+    <div class="barra" id="barra"></div>
+  </div>
+
+  <button class="reset-btn" onclick="resetear()">Limpiar ramos aprobados</button>
+
+  <div class="legend" id="leyenda"></div>
+  <div class="malla" id="malla"></div>
+
+  <script>
+    const colores = {
+      contabilidad: "#d0ebff",
+      legal: "#ffd6e0",
+      matematicas: "#e6e6ff",
+      administracion: "#d2f8d2",
+      finanzas: "#fff3cd",
+      tecnologia: "#e3f2fd",
+      ingles: "#dee2ff",
+      etica: "#ffe5b4",
+      formacion: "#e0f7fa",
+      optativo: "#f0f4ff"
+    };
+
+    const cursos = [  { codigo: "ICC0101", nombre: "Sociedad y Entorno Legal de la Empresa", sct: 6, semestre: 1, area: "legal", prerrequisitos: [] },
+  { codigo: "MAT0101", nombre: "Matemáticas I: Administración y negocios", sct: 6, semestre: 1, area: "matematicas", prerrequisitos: [] },
+  { codigo: "ICC0103", nombre: "Sociedad, Organización, Empresa y Personas", sct: 6, semestre: 1, area: "administracion", prerrequisitos: [] },
+  { codigo: "ICC0102", nombre: "Sistemas de Información y Comunicación I", sct: 6, semestre: 1, area: "tecnologia", prerrequisitos: [] },
+  { codigo: "CCG0101", nombre: "Expresión y Comunicación", sct: 6, semestre: 1, area: "etica", prerrequisitos: [] },
+
+  { codigo: "ICC0201", nombre: "Principios de contabilidad IFRS", sct: 6, semestre: 2, area: "contabilidad", prerrequisitos: ["ICC0101"] },
+  { codigo: "MAT0201", nombre: "Matemáticas II: Administración y negocios", sct: 6, semestre: 2, area: "matematicas", prerrequisitos: ["MAT0101"] },
+  { codigo: "ICC0203", nombre: "Administración de Empresas", sct: 6, semestre: 2, area: "administracion", prerrequisitos: ["ICC0103"] },
+  { codigo: "ICC0202", nombre: "Sistemas de Información y Comunicación II", sct: 6, semestre: 2, area: "tecnologia", prerrequisitos: ["ICC0102"] },
+  { codigo: "CCG0202", nombre: "Ética Profesional y Responsabilidad Social Empresarial", sct: 6, semestre: 2, area: "etica", prerrequisitos: [] },
+  { codigo: "ING0101", nombre: "Inglés General I", sct: 4, semestre: 2, area: "ingles", prerrequisitos: [] },
+
+  { codigo: "ICC0301", nombre: "Proceso Contabilidad Básica IFRS", sct: 6, semestre: 3, area: "contabilidad", prerrequisitos: ["ICC0201"] },
+  { codigo: "DER0301", nombre: "Derecho del Trabajo y Seguridad Social", sct: 6, semestre: 3, area: "legal", prerrequisitos: ["ICC0103"] },
+  { codigo: "MAT0301", nombre: "Matemáticas III: Administración y negocios", sct: 6, semestre: 3, area: "matematicas", prerrequisitos: ["MAT0201"] },
+  { codigo: "ECO0301", nombre: "Sociedad y Entorno Microeconómico", sct: 6, semestre: 3, area: "formacion", prerrequisitos: ["MAT0201"] },
+  { codigo: "CFG0301", nombre: "Curso de Formación General", sct: 6, semestre: 3, area: "formacion", prerrequisitos: [] },
+  { codigo: "ING0201", nombre: "Inglés General II", sct: 4, semestre: 3, area: "ingles", prerrequisitos: ["ING0101"] },
+
+  { codigo: "ICC0401", nombre: "Procesos Contabilidad Intermedia IFRS", sct: 6, semestre: 4, area: "contabilidad", prerrequisitos: ["ICC0301"] },
+  { codigo: "DER0401", nombre: "Derecho Tributario", sct: 6, semestre: 4, area: "legal", prerrequisitos: ["DER0301"] },
+  { codigo: "ICC0402", nombre: "Contabilidad y Procesos de Costos", sct: 6, semestre: 4, area: "contabilidad", prerrequisitos: ["ICC0301"] },
+  { codigo: "FIN0401", nombre: "Finanzas de la Empresa Corto plazo", sct: 6, semestre: 4, area: "finanzas", prerrequisitos: ["MAT0101", "ICC0203"] },
+  { codigo: "ECO0401", nombre: "Sociedad y Entorno Macroeconómico", sct: 6, semestre: 4, area: "formacion", prerrequisitos: ["ECO0301"] },
+  { codigo: "ING0301", nombre: "Inglés General III", sct: 4, semestre: 4, area: "ingles", prerrequisitos: ["ING0201"] },
+
+  { codigo: "ICC0501", nombre: "Procesos Contabilidad Superior IFRS", sct: 6, semestre: 5, area: "contabilidad", prerrequisitos: ["ICC0401"] },
+  { codigo: "DER0501", nombre: "Derecho Tributario Empresas", sct: 6, semestre: 5, area: "legal", prerrequisitos: ["DER0401"] },
+  { codigo: "ICC0502", nombre: "Gestión y Control Presupuestario", sct: 6, semestre: 5, area: "contabilidad", prerrequisitos: ["ICC0402"] },
+  { codigo: "EST0501", nombre: "Estadísticas, Auditoría y Negocios", sct: 6, semestre: 5, area: "finanzas", prerrequisitos: ["FIN0401"] },
+  { codigo: "ICC0503", nombre: "Comportamiento Organizacional", sct: 6, semestre: 5, area: "administracion", prerrequisitos: ["ICC0203"] },
+  { codigo: "ING0401", nombre: "Inglés Específico IV", sct: 4, semestre: 5, area: "ingles", prerrequisitos: ["ING0301"] },
+
+  { codigo: "ICC0601", nombre: "Procesos Contabilidad Avanzada IFRS", sct: 6, semestre: 6, area: "contabilidad", prerrequisitos: ["ICC0501"] },
+  { codigo: "DER0601", nombre: "Derecho Tributario Personas", sct: 6, semestre: 6, area: "legal", prerrequisitos: ["DER0401"] },
+  { codigo: "ICC0602", nombre: "Gestión en Auditoría I", sct: 6, semestre: 6, area: "contabilidad", prerrequisitos: ["ICC0401", "DER0501"] },
+  { codigo: "FIN0601", nombre: "Finanzas de la Empresa Largo plazo", sct: 6, semestre: 6, area: "finanzas", prerrequisitos: ["FIN0401"] },
+  { codigo: "ICC0603", nombre: "Sistemas de Información y Comunicación III", sct: 6, semestre: 6, area: "tecnologia", prerrequisitos: ["ICC0202"] },
+  { codigo: "CFG0601", nombre: "Curso de Formación General", sct: 6, semestre: 6, area: "formacion", prerrequisitos: [] },
+
+  { codigo: "AUD0701", nombre: "Auditoría y Seguridad Sistemas de Información (TI)", sct: 6, semestre: 7, area: "contabilidad", prerrequisitos: ["ICC0602"] },
+  { codigo: "AUD0702", nombre: "Auditoría Tributaria", sct: 6, semestre: 7, area: "contabilidad", prerrequisitos: ["ICC0602"] },
+  { codigo: "ICC0701", nombre: "Gestión en Auditoría II", sct: 6, semestre: 7, area: "contabilidad", prerrequisitos: ["ICC0602"] },
+  { codigo: "FIN0701", nombre: "Finanzas Corporativas", sct: 6, semestre: 7, area: "finanzas", prerrequisitos: ["FIN0601"] },
+  { codigo: "ADM0701", nombre: "Dirección Estratégica de Empresas", sct: 6, semestre: 7, area: "administracion", prerrequisitos: ["ICC0503"] },
+  { codigo: "CFG0701", nombre: "Curso de Formación General", sct: 6, semestre: 7, area: "formacion", prerrequisitos: [] },
+
+  { codigo: "AUD0801", nombre: "Auditoría Forense Fraude y Delitos Económicos", sct: 6, semestre: 8, area: "contabilidad", prerrequisitos: ["ICC0701"] },
+  { codigo: "AUD0802", nombre: "Auditorías Especiales", sct: 6, semestre: 8, area: "contabilidad", prerrequisitos: ["ICC0701"] },
+  { codigo: "FIN0801", nombre: "Gestión de Riesgos", sct: 6, semestre: 8, area: "finanzas", prerrequisitos: ["FIN0701"] },
+  { codigo: "ADM0801", nombre: "Control de Gestión Estratégico y Operacional", sct: 6, semestre: 8, area: "administracion", prerrequisitos: ["ADM0701"] },
+  { codigo: "OPT0801", nombre: "Optativo de Profundización", sct: 6, semestre: 8, area: "optativo", prerrequisitos: [] },
+
+  { codigo: "AUD0901", nombre: "Juego de Auditoría Basado en Riesgos", sct: 6, semestre: 9, area: "contabilidad", prerrequisitos: ["AUD0802", "ICC0701", "ADM0801"] },
+  { codigo: "MET0901", nombre: "Metodología de la Investigación", sct: 6, semestre: 9, area: "formacion", prerrequisitos: ["ADM0701"] },
+  { codigo: "IND0901", nombre: "Inducción Laboral Profesional en Auditoría", sct: 6, semestre: 9, area: "contabilidad", prerrequisitos: ["ICC0701"] },
+
+  { codigo: "OPT1001", nombre: "Optativo de Profundización", sct: 6, semestre: 10, area: "optativo", prerrequisitos: [] },
+  { codigo: "OPT1002", nombre: "Optativo de Profundización", sct: 6, semestre: 10, area: "optativo", prerrequisitos: [] },
+  { codigo: "SEM1001", nombre: "Seminario de Título", sct: 6, semestre: 10, area: "formacion", prerrequisitos: ["AUD0901", "MET0901"] }]; // ← Aquí pegarás el arreglo con los cursos (como ya te lo pasé antes)
+
+    let progreso = JSON.parse(localStorage.getItem("progresoUDP")) || {};
+
+    function renderMalla() {
+      const malla = document.getElementById("malla");
+      malla.innerHTML = "";
+      const max = Math.max(...cursos.map(c => c.semestre));
+      for (let i = 1; i <= max; i++) {
+        cursos.filter(c => c.semestre === i).forEach(curso => {
+          const div = document.createElement("div");
+          div.className = "ramo";
+          div.style.backgroundColor = colores[curso.area] || "#f1f3f5";
+          if (curso.prerrequisitos.some(pr => !progreso[pr])) div.classList.add("locked");
+          if (progreso[curso.codigo]) div.classList.add("done");
+          div.onclick = () => {
+            if (div.classList.contains("locked")) return;
+            progreso[curso.codigo] = !progreso[curso.codigo];
+            localStorage.setItem("progresoUDP", JSON.stringify(progreso));
+            renderMalla();
+            actualizarBarra();
+          };
+          div.innerHTML = `<div class="codigo">${curso.codigo}</div>
+                           <div class="nombre">${curso.nombre}</div>
+                           <div class="sct">${curso.sct} SCT</div>`;
+          malla.appendChild(div);
+        });
+      }
+    }
+
+    function actualizarBarra() {
+      const total = cursos.length;
+      const completados = Object.values(progreso).filter(Boolean).length;
+      const porcentaje = (completados / total) * 100;
+      document.getElementById("barra").style.width = porcentaje + "%";
+    }
+
+    function resetear() {
+      localStorage.removeItem("progresoUDP");
+      progreso = {};
+      renderMalla();
+      actualizarBarra();
+    }
+
+    function renderLeyenda() {
+      const leyenda = document.getElementById("leyenda");
+      Object.entries(colores).forEach(([area, color]) => {
+        const item = document.createElement("div");
+        item.className = "legend-item";
+        item.innerHTML = `<span class='legend-color' style='background:${color}'></span>${area.charAt(0).toUpperCase() + area.slice(1)}`;
+        leyenda.appendChild(item);
+      });
+    }
+
+    renderLeyenda();
+    renderMalla();
+    actualizarBarra();
+  </script>
+</body>
+</html>
