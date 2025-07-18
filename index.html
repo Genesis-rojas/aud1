@@ -93,6 +93,7 @@
     .ramo.done {
       position: relative;
     }
+
     .ramo.done::after {
       content: "";
       position: absolute;
@@ -100,8 +101,10 @@
       left: 5%;
       width: 90%;
       height: 2px;
-      background-color: red; /* Puedes cambiar a otro color si prefieres */
-      transform: translateY(-50%);
+      background-color: #666; /* Puedes cambiar a otro color si prefieres */
+      transform: rotate(-45deg);
+      transform-origin: left top;
+      z-index: 2;
     }
 
     .ramo.locked {
