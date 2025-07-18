@@ -245,12 +245,12 @@
         const div = document.createElement("div");
         div.className = "ramo";
         if (curso.area === "general") {
-  div.style.backgroundColor = "#ffffff";
-  div.style.border = "2px solid #2196f3"; // borde azul solo para 'general'
-} else {
-  div.style.backgroundColor = colores[curso.area] || "#f1f3f5";
-  div.style.border = "none"; // sin borde para los demás
-}
+          div.style.backgroundColor = "#ffffff";
+          div.style.border = "2px solid #2196f3"; // borde azul solo para 'general'
+        } else {
+          div.style.backgroundColor = colores[curso.area] || "#f1f3f5";
+          div.style.border = "none"; // sin borde para los demás
+        }
         if (curso.prerrequisitos.some(pr => !progreso[pr])) div.classList.add("locked");
         if (progreso[curso.codigo]) div.classList.add("done");
         div.onclick = () => {
