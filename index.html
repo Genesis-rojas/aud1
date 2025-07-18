@@ -97,14 +97,14 @@
     .ramo.done::after {
       content: "";
       position: absolute;
-      top: 50%;
-      left: 5%;
-      width: 90%;
+      top: 0;
+      left: -25%;
+      width: 150%;
       height: 2px;
       background-color: #666; /* Puedes cambiar a otro color si prefieres */
       transform: rotate(-45deg);
-      transform-origin: left top;
-      z-index: 2;
+      z-index: 5;
+      pointer-events: none;
     }
 
     .ramo.locked {
