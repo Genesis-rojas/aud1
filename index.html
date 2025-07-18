@@ -58,16 +58,18 @@
 }
 
     .ramo {
-      background-color: #e3f2fd;
-      border-radius: 0 !important;
-      padding: 8px;
-      font-size: 12px;
-      text-align: center;
-      position: relative;
-      cursor: pointer;
-      min-height: 80px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
+  background-color: #e3f2fd;
+  border-radius: 0px !important;
+  padding: 8px;
+  font-size: 12px;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  min-height: 80px;
+  box-shadow: none !important; /* ← elimina sombra si no quieres efecto de profundidad */
+  border: 1px solid #ccc; /* ← agregamos borde recto visible para que se vea cuadrado */
+}
+
 
     .ramo .codigo {
       font-weight: 600;
