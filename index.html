@@ -257,6 +257,9 @@
       .forEach(curso => {
         const div = document.createElement("div");
         div.className = "ramo";
+
+        div.classList.remove("locked", "done");
+
         if (curso.area === "general") {
           div.style.backgroundColor = "#ffffff";
           div.style.border = "2px solid #2196f3"; // borde azul solo para 'general'
